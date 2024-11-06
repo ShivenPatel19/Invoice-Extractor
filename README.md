@@ -34,7 +34,7 @@ pip install -r requirements.txt
 ### Step 4: Set Up API Keys
 This project uses Google’s Generative AI API. To use it:
 1. Get your API key from Google and store it in a `.env` file in the project directory.
-    Create your API key from here: https://aistudio.google.com/app/apikey
+    Create your API key from [here](https://aistudio.google.com/app/apikey).
 2. Add the following line in the `.env` file:
     ```bash
     GOOGLE_API_KEY=<Your-API-Key-In-String-Format>

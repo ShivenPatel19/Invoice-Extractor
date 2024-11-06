@@ -210,24 +210,6 @@ input_prompt = """
                     final_total = subtotal + tax_amount - discount_amount
 
                 """ 
-                # Subtotal is total amount of items in the cart before taxes and discounts. And if subtotal is not given, you can calculate it using other information like taxes, discounts and final amount or any of them.
-                # Instructions to Follow Strictly:
-                # 1. If any of the required fields or parameters are missing in the image, fill in their values as "null".
-                # 2. Ensure consistency between quantity, price, and total in the "items" section:
-                #     If the individual item total is missing, calculate it as quantity * price and provide an accurate result.
-                # 3. For taxes:
-                #     If multiple types of taxes are listed (such as CGST, SGST, etc.), sum them and verify the accuracy of the tax total.
-                #     If tax percentages are provided, verify that they match the total tax amount.
-                #     Sometimes total taxes are not given, then you need to sum up all taxes seperately to get the corrrect amount of final tax.
-                #     For example, taxable amount(including discounts if any) plus total taxes(including CGST and SGST individually) should match to final amount.
-                # 4. Most Important thing to Note: Sometimes product/iteam name are covered in multiple line in same column. please dont get confused and consider each row as new item.
-                #     you should consider it as a single item.
-                # 5. Time when bill is generated/paid may be anywhere on the bill, you need to indetify it.
-                #     you may recognize its format or by searching am/AM or pm/PM on the bill.
-                # 6. If possible, please verify that the extracted data aligns with expected values.
-                #     For example, check if the total amount matches the sum of item prices plus taxes minus any discounts.
-                #     For example, total quantity is matching with sum of quantities of  each item, if given.
-                #     Similarly, confirm other values based on your expertise in understanding invoices and bills.
 
 # Streamlit file uploader now allows PDF in addition to images
 uploaded_file = st.file_uploader("Choose an invoice image or PDF...", type=["jpg", "jpeg", "png", "pdf"])
@@ -250,24 +232,6 @@ if uploaded_file is not None:
         
     except Exception as e:
         st.error(f"An error occurred during extraction: {str(e)}")
-
-# # Optional Q&A on extracted data
-# st.subheader("Ask Specific Questions")
-# query = st.text_input("Type your query based on the extracted information:", key="query")
-# if query:
-#     try:
-#         combined_input = f"{initial_response}\n\nUser Query: {query}"
-#         imput_prompt_QNA = """You are given with the data and user query, you just need to answer according to the information given to you
-#                                 you need to answer in such a way that is shouldfeel like talkinng to a human. any other query apart from the 
-#                                 information given in the invoice will be ignored and not be answered. Please!"""
-        
-#         follow_up_response = get_gemini_response(combined_input, image_data, imput_prompt_QNA)
-#         # follow_up_response = get_gemini_response(combined_input, prompt=imput_prompt_QNA)
-
-#         st.write(follow_up_response)
-
-#     except Exception as e:
-#         st.error(f"An error occurred during Q&A: {str(e)}")
 
 if flag == 0:
     initial_response = ""
