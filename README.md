@@ -8,6 +8,10 @@ A Streamlit-based application that extracts structured information from invoice 
 - **Invoice Data Extraction**: Extracts key details such as merchant information, item list, tax details, and total amounts.
 - **Q&A Interface**: Enables users to ask specific questions based on the extracted data, with responses generated conversationally.
 
+## Demo
+
+For a quick overview of how the application works, check out the [video demo](https://drive.google.com/file/d/18ZAj3EQ1Q5HzYqgdH-pKf3qRudWSS0a3/view?usp=drive_link).
+
 ## Installation
 
 ### Step 1: Clone the Repository
