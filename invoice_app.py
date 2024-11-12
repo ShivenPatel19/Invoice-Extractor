@@ -7,7 +7,7 @@ import io
 from PIL import Image
 import google.generativeai as genai
 from pdf2image import convert_from_bytes
- 
+
 # Load environment variables
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -24,48 +24,36 @@ def straighten_and_save_image(image_data, save_folder='straightened_images'):
     Returns:
         str: Path to the saved straightened image.
     """
-    # Convert bytes data to a numpy array and then read it using OpenCV
     nparr = np.frombuffer(image_data, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
     if img is None:
         raise ValueError("Image not found or unable to load.")
 
-    # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Thresholding for edge detection
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-
-    # Find contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Check for contours
     if not contours:
         raise ValueError("No contours found in the image.")
 
-    # Sort contours by area and get the largest one (the receipt)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:1]
 
-    # Get the bounding box of the largest contour
     for contour in contours:
         epsilon = 0.02 * cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, epsilon, True)
 
-        if len(approx) == 4:  # We found a rectangle
+        if len(approx) == 4:
             pts = approx.reshape(4, 2)
             rect = np.zeros((4, 2), dtype="float32")
 
-            # Order points (top-left, top-right, bottom-right, bottom-left)
             s = pts.sum(axis=1)
-            rect[0] = pts[np.argmin(s)]  # top-left
-            rect[2] = pts[np.argmax(s)]  # bottom-right
-
+            rect[0] = pts[np.argmin(s)]
+            rect[2] = pts[np.argmax(s)]
             diff = np.diff(pts, axis=1)
-            rect[1] = pts[np.argmin(diff)]  # top-right
-            rect[3] = pts[np.argmax(diff)]  # bottom-left
+            rect[1] = pts[np.argmin(diff)]
+            rect[3] = pts[np.argmax(diff)]
 
-            # Compute width and height of new image
             widthA = np.linalg.norm(rect[1] - rect[0])
             widthB = np.linalg.norm(rect[2] - rect[3])
             maxWidth = max(int(widthA), int(widthB))
@@ -74,19 +62,14 @@ def straighten_and_save_image(image_data, save_folder='straightened_images'):
             heightB = np.linalg.norm(rect[2] - rect[1])
             maxHeight = max(int(heightA), int(heightB))
 
-            # Set destination points for perspective transform
             dst = np.array([[0, 0], [maxWidth - 1, 0], [maxWidth - 1, maxHeight - 1], [0, maxHeight - 1]], dtype="float32")
-
-            # Perform perspective transform
             M = cv2.getPerspectiveTransform(rect, dst)
             warped = cv2.warpPerspective(img, M, (maxWidth, maxHeight))
 
-            # Ensure directory exists before saving
             if not os.path.exists(save_folder):
                 os.makedirs(save_folder)
 
-            # Save the straightened image with a unique name based on timestamp or original name
-            original_filename = "straightened_image.jpg"  # You can customize this as needed
+            original_filename = "straightened_image.jpg"
             save_path = os.path.join(save_folder, original_filename)
             save_status = cv2.imwrite(save_path, warped)
 
@@ -97,21 +80,27 @@ def straighten_and_save_image(image_data, save_folder='straightened_images'):
 
     raise ValueError("Unable to straighten the image.")
 
-# Function to load OpenAI model and get responses
 def get_gemini_response(input_text, image_data, prompt):
+    """
+    Loads the Gemini model and generates a response based on the provided input text, image data, and prompt.
+
+    Parameters:
+        input_text (str): The text input for the model.
+        image_data (bytes): The image data in bytes format.
+        prompt (str): The prompt to instruct the model's response behavior.
+
+    Returns:
+        str: Generated response text from the model.
+    """
     model = genai.GenerativeModel('gemini-1.5-flash')
     try:
-        # Convert image data from bytes to PIL Image
         image = Image.open(io.BytesIO(image_data))
         
-        # Ensure that input_text and prompt are strings
         if not isinstance(input_text, str) or not isinstance(prompt, str):
             raise ValueError("Input text and prompt must be strings.")
 
-        # Pass the input text, image object, and prompt to the model
         response = model.generate_content([input_text, image, prompt])
         
-        # Check if the response is in a valid format
         if hasattr(response, 'text'):
             return response.text
         else:
@@ -120,20 +109,26 @@ def get_gemini_response(input_text, image_data, prompt):
         return f"An error occurred: {str(e)}"
 
 def input_image_setup(uploaded_file):
+    """
+    Prepares the uploaded file for processing by converting it to bytes data. If the file is a PDF,
+    converts the first page to a JPEG format.
+
+    Parameters:
+        uploaded_file (File): The file uploaded by the user.
+
+    Returns:
+        bytes: The prepared image data in bytes format.
+    """
     if uploaded_file is not None:
         file_type = uploaded_file.type
 
         if file_type == "application/pdf":
-            # Convert PDF to images
             images = convert_from_bytes(uploaded_file.getvalue())
-            # Use the first page of the PDF for extraction or process all pages as needed
-            image = images[0]  # Take the first page for processing (or iterate through all pages if needed)
-            # Convert PIL image to bytes for OpenCV processing
+            image = images[0]
             buf = io.BytesIO()
             image.save(buf, format="JPEG")
             bytes_data = buf.getvalue()
         else:
-            # If it's not a PDF, assume it's an image
             bytes_data = uploaded_file.getvalue()
 
         return bytes_data
@@ -208,21 +203,14 @@ input_prompt = """
                     subtotal = final_total - tax_amount + discount_amount
                     Validation: Confirm that:
                     final_total = subtotal + tax_amount - discount_amount
-
                 """ 
 
-# Streamlit file uploader now allows PDF in addition to images
 uploaded_file = st.file_uploader("Choose an invoice image or PDF...", type=["jpg", "jpeg", "png", "pdf"])
 
-# Process image or PDF immediately after upload
 if uploaded_file is not None:
     try:
         image_data = input_image_setup(uploaded_file)
-        
-        # Preprocess: straighten and save image before passing it to generative model.
         straightened_image_path = straighten_and_save_image(image_data)
-        
-        # st.image(straightened_image_path)  # Show straightened image
         st.image(straightened_image_path, use_column_width=True)
 
         initial_response = get_gemini_response("", image_data, input_prompt)
@@ -236,14 +224,12 @@ if uploaded_file is not None:
 if flag == 0:
     initial_response = ""
 
-# Optional Q&A on extracted data
 st.subheader("Ask Specific Questions")
 
-# Disable the input if there's no initial response
 query = st.text_input(
     "Type your query based on the extracted information:", 
     key="query",
-    disabled=not initial_response  # Disable if initial_response is empty
+    disabled=not initial_response
 )
 
 if query:
