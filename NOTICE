@@ -1,0 +1,9 @@
+This codebase utilizes the following open-source libraries and tools, which are subject to their respective licenses:
+
+OpenCV - Used for image processing. Licensed under the Apache License 2.0.
+NumPy - Used for numerical computations. Licensed under the BSD License.
+Pillow (PIL) - Used for image manipulation. Licensed under the HPND License.
+Streamlit - Used for building the web application. Licensed under the Apache License 2.0.
+Python-dotenv - Used for managing environment variables. Licensed under the BSD License.
+pdf2image - Used for PDF-to-image conversion. Licensed under the MIT License.
+Google Generative AI API - Used for LLM-based text generation. Usage governed by Google's API Terms of Service.

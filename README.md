@@ -41,7 +41,7 @@ This project uses Google’s Generative AI API. To use it:
     Create your API key from [here](https://aistudio.google.com/app/apikey).
 2. Add the following line in the `.env` file:
     ```bash
-    GOOGLE_API_KEY=<Your-API-Key-In-String-Format>
+    GOOGLE_API_KEY=<Your-API-Key>
     ```
 
 ## Usage
@@ -53,6 +53,12 @@ Start the Streamlit app by running:
 streamlit run invoice_app.py
 ```
 
+or 
+
+```bash
+streamlit run full_invoice_app.py
+```
+
 ### Step 2: Upload and Process an Invoice
 1. Open the app in your browser (Streamlit will display the link in your terminal).
 2. Upload an invoice image or PDF.
@@ -62,7 +68,8 @@ streamlit run invoice_app.py
 After extraction, enter specific queries in the Q&A interface to get responses based on the extracted information.
 
 ## File Structure
-- **invoice_app.py**: Main application code for processing invoices and handling Q&A interactions.
+- **invoice_app.py**: Main application code for processing invoices and handling Q&A interactions. Indicates a lightweight, focused application fetching only the required information.
+- **full_invoice_app.py**: Main application code for processing invoices. Indicates a more comprehensive application fetching all available details.
 - **requirements.txt**: List of dependencies for the project.
 
 ## Notes
