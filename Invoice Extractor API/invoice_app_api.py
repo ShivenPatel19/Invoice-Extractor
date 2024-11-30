@@ -112,9 +112,8 @@ async def root():
             """.strip(),
             "python_example": """
                 import requests
-
                 url = "https://invoice-extractor-api.onrender.com/process-invoice/"
-                files = {'file': open('invoice.pdf', 'rb')}
+                files = {'file': ('image1.jpeg', open('D:\\PaddleOCR\\Gemini+OCR\\images\\image1.jpeg', 'rb'))}
                 response = requests.post(url, files=files)
                 print(response.json())
             """.strip(),
