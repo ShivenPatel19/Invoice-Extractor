@@ -70,7 +70,7 @@ def input_image_setup(uploaded_file):
             image.save(buf, format="JPEG")
             image_bytes_list.append(buf.getvalue())
         return image_bytes_list
-    elif file_type in ["image/jpeg", "image/png"]:
+    elif file_type in ["image/jpeg", "image/png", "image/jpg"]:
         # If it's a single image, return the image byte data
         return [file_content]
     else:
@@ -84,7 +84,7 @@ async def root():
         "usage": {
             "upload_endpoint": "/process-invoice/",
             "method": "POST",
-            "file_types": ["PDF", "JPEG", "PNG"],
+            "file_types": ["PDF", "JPEG", "JPG", "PNG"],
             "instructions": "Use this endpoint to upload an invoice as a file. The API will process the file and return the extracted data in JSON format."
         },
         "examples": {
