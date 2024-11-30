@@ -3,8 +3,8 @@
 
 A Streamlit-based application that extracts structured information from invoice images or PDFs. It preprocesses uploaded documents by straightening the images and then leverages Google’s Generative AI API to identify and format key details, such as merchant information, item details, taxes, and total amounts, into an organized JSON structure. The app also provides a Q&A feature for querying extracted information conversationally.
 
-Access API: [click here](https://invoice-extractor-api.onrender.com/process-invoice/)
-How to use?: [read](Invoice Extractor API\README.md)
+- Access API: [click here](https://invoice-extractor-api.onrender.com/process-invoice/)
+- How to use?: [read](Invoice Extractor API/README.md)
 
 ## Features
 - **Straightening & Preprocessing**: Automatically corrects image orientation.

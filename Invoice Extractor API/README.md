@@ -63,7 +63,9 @@ print(response.json())
 ## Supported File Types
 - **PDF**: `application/pdf`
 - **JPEG**: `image/jpeg`
+- **JPG**: `image/jpg`
 - **PNG**: `image/png`
+
 
 **Note**: The API only processes PDF, JPEG, and PNG files. Other file types will result in an error.
 
