@@ -53,16 +53,33 @@ def get_gemini_response(input_text, image_data, prompt):
 
 def input_image_setup(uploaded_file):
     """
-    Prepares the uploaded file for processing. Converts a PDF file to JPEG if necessary and processes all pages.
+    Prepares the uploaded file for processing. Detects the file type (PDF or image) from the content
+    and processes accordingly. Converts a PDF to JPEG if necessary and handles all pages.
     """
     file_content = uploaded_file.file.read()
-    file_type = uploaded_file.content_type
+    
+    # Detect the file type using magic numbers or headers
+    def detect_file_type(file_bytes):
+        if file_bytes.startswith(b"%PDF"):  # PDF files start with "%PDF"
+            return "application/pdf"
+        elif file_bytes[:4] in [b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1', b'\xff\xd8\xff\xe2']:  # JPEG, JPE, JPG magic numbers
+            return "image/jpeg"
+        elif file_bytes[:8] == b'\x89PNG\r\n\x1a\n':  # PNG magic number
+            return "image/png"
+        return None
 
+    file_type = detect_file_type(file_content)
+    
     if file_type == "application/pdf":
         # Convert the PDF to a list of images (one image per page)
-        images = convert_from_bytes(file_content)
+        try:
+            images = convert_from_bytes(file_content)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
+        
         if not images:
             raise HTTPException(status_code=400, detail="The uploaded PDF is empty or invalid.")
+        
         # Return the list of image bytes (one for each page)
         image_bytes_list = []
         for image in images:
@@ -70,11 +87,13 @@ def input_image_setup(uploaded_file):
             image.save(buf, format="JPEG")
             image_bytes_list.append(buf.getvalue())
         return image_bytes_list
-    elif file_type in ["image/jpeg", "image/png", "image/jpg"]:
+
+    elif file_type == "image/jpeg" or file_type == "image/png":
         # If it's a single image, return the image byte data
         return [file_content]
+
     else:
-        raise HTTPException(status_code=400, detail="Unsupported file type. Only PDF, JPEG, and PNG are allowed.")
+        raise HTTPException(status_code=400, detail="Unsupported file type. Only PDF, JPEG, JPE, JPG, and PNG are allowed.")
 
 @app.get("/")
 async def root():
