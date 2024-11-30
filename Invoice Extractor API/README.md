@@ -70,7 +70,7 @@ print(response.json())
 **Note**: The API only processes PDF, JPEG, and PNG files. Other file types will result in an error.
 
 ## Error Handling
-- **Unsupported File Type**: If a file type other than PDF, JPEG, or PNG is uploaded, the server will respond with:
+- **Unsupported File Type**: If a file type other than PDF, JPG, JPEG, or PNG is uploaded, the server will respond with:
   ```json
   {
     "detail": "Unsupported file type. Only PDF, JPEG, and PNG are allowed."
