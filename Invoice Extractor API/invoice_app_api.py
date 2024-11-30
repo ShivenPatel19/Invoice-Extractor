@@ -7,10 +7,10 @@ from pdf2image import convert_from_bytes
 import json
 from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 import uvicorn
 from google.generativeai import GenerativeModel
-
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -18,69 +18,21 @@ app = FastAPI()
 # Initialize Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+# Enable CORS (Cross-Origin Resource Sharing)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Open to all domains (use carefully)
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],  # Only allow GET and POST methods
+    allow_headers=["Accept", "Content-Type"],  # Allow specific headers only
+)
+
 # Load environment variables
 load_dotenv()
 api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
     raise RuntimeError("GOOGLE_API_KEY is missing from environment variables")
 genai.configure(api_key=api_key)
-
-
-# def straighten_and_save_image(image_data):
-#     """
-#     Straightens the image by detecting the largest contour and performs a perspective transform.
-#     Returns the straightened image.
-#     """
-#     nparr = np.frombuffer(image_data, np.uint8)
-#     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-#     if img is None:
-#         raise ValueError("Invalid image data or unable to load the image.")
-
-#     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#     # cv2.imwrite("gray.png", gray)
-#     # return gray
-
-#     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
-#     # cv2.imwrite("straightened_image.png", thresh)
-#     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-#     if not contours:
-#         raise ValueError("No contours found in the image. The image might be too plain or improperly captured.")
-
-#     # Process the largest contour
-#     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:1]
-
-#     for contour in contours:
-#         epsilon = 0.02 * cv2.arcLength(contour, True)
-#         approx = cv2.approxPolyDP(contour, epsilon, True)
-
-#         if len(approx) == 4:
-#             pts = approx.reshape(4, 2)
-#             rect = np.zeros((4, 2), dtype="float32")
-
-#             s = pts.sum(axis=1)
-#             rect[0] = pts[np.argmin(s)]
-#             rect[2] = pts[np.argmax(s)]
-#             diff = np.diff(pts, axis=1)
-#             rect[1] = pts[np.argmin(diff)]
-#             rect[3] = pts[np.argmax(diff)]
-
-#             widthA = np.linalg.norm(rect[1] - rect[0])
-#             widthB = np.linalg.norm(rect[2] - rect[3])
-#             maxWidth = max(int(widthA), int(widthB))
-
-#             heightA = np.linalg.norm(rect[3] - rect[0])
-#             heightB = np.linalg.norm(rect[2] - rect[1])
-#             maxHeight = max(int(heightA), int(heightB))
-
-#             dst = np.array([[0, 0], [maxWidth - 1, 0], [maxWidth - 1, maxHeight - 1], [0, maxHeight - 1]], dtype="float32")
-#             M = cv2.getPerspectiveTransform(rect, dst)
-#             warped = cv2.warpPerspective(img, M, (maxWidth, maxHeight))
-#             return warped
-
-#     raise ValueError("Unable to straighten the image. Ensure the image contains clear boundaries or edges.")
-
 
 def get_gemini_response(input_text, image_data, prompt):
     """
@@ -136,14 +88,16 @@ async def root():
             "instructions": "Use this endpoint to upload an invoice as a file. The API will process the file and return the extracted data in JSON format."
         },
         "examples": {
-            "curl_example": "curl -X POST -F 'file=@invoice.pdf' http://<host>:8000/process-invoice/",
+            "curl_example": """
+                curl -X POST -F "file=@invoice.pdf" https://invoice-extractor-api.onrender.com/process-invoice/
+            """.strip(),
             "python_example": """
-import requests
+                import requests
 
-url = "http://<host>:8000/process-invoice/"
-files = {'file': open('invoice.pdf', 'rb')}
-response = requests.post(url, files=files)
-print(response.json())
+                url = "https://invoice-extractor-api.onrender.com/process-invoice/"
+                files = {'file': open('invoice.pdf', 'rb')}
+                response = requests.post(url, files=files)
+                print(response.json())
             """.strip(),
         },
         "support": "For any issues or questions, please contact the support team or refer to the API documentation."
@@ -237,11 +191,6 @@ async def process_invoice(file: UploadFile):
         # Process each page's image
         for image_data in image_data_list:
 
-            # Straighten the image
-            # straightened_image = straighten_and_save_image(image_data)
-            # _, buffer = cv2.imencode('.jpg', straightened_image)
-            # image_bytes = buffer.tobytes()
-
             # Generate response using Gemini
             gemini_response = get_gemini_response(input_text, image_data, input_prompt)
 
@@ -270,41 +219,6 @@ async def process_invoice(file: UploadFile):
     except Exception as e:
         logging.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing invoice: {str(e)}")
-
-# def combine_invoice_data(all_page_data):
-#     """
-#     Combines data from all pages into one unified result.
-#     Assumes that the structure of each page's data is consistent.
-#     """
-#     def safe_float(value):
-#         """Converts a value to float safely, defaulting to 0.0 if conversion fails."""
-#         try:
-#             return float(value)
-#         except (TypeError, ValueError):
-#             return 0.0
-
-#     combined_data = {
-#         "merchant": all_page_data[0].get("merchant", {}),
-#         "receipt_details": all_page_data[0].get("receipt_details", {}),
-#         "items": [],
-#         "subtotal": 0.0,
-#         "tax_amount": 0.0,
-#         "discount_amount": 0.0,
-#         "final_total": 0.0,
-#     }
-
-#     # Combine items and calculate totals
-#     for page_data in all_page_data:
-#         items = page_data.get("items", [])
-#         combined_data["items"].extend(items)
-        
-#         # Safely add numeric values, converting them if necessary
-#         combined_data["subtotal"] += safe_float(page_data.get("subtotal"))
-#         combined_data["tax_amount"] += safe_float(page_data.get("tax_amount"))
-#         combined_data["discount_amount"] += safe_float(page_data.get("discount_amount"))
-#         combined_data["final_total"] += safe_float(page_data.get("final_total"))
-
-#     return combined_data
 
 def process_merged_invoice(all_page_texts):
     """
