@@ -7,3 +7,7 @@ Streamlit - Used for building the web application. Licensed under the Apache Lic
 Python-dotenv - Used for managing environment variables. Licensed under the BSD License.
 pdf2image - Used for PDF-to-image conversion. Licensed under the MIT License.
 Google Generative AI API - Used for LLM-based text generation. Usage governed by Google's API Terms of Service.
+FastAPI - Used for building APIs. Licensed under the MIT License.
+Uvicorn - Used as an ASGI server for running FastAPI applications. Licensed under the MIT License.
+opencv-python-headless - Used for image processing without GUI support. Licensed under the Apache License 2.0.
+python-multipart - Used for handling multipart data in FastAPI. Licensed under the MIT License.
