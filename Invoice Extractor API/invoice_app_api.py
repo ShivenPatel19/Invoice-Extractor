@@ -1,5 +1,3 @@
-import cv2
-import numpy as np
 import os
 from dotenv import load_dotenv
 from PIL import Image
@@ -126,6 +124,30 @@ def input_image_setup(uploaded_file):
     else:
         raise HTTPException(status_code=400, detail="Unsupported file type. Only PDF, JPEG, and PNG are allowed.")
 
+@app.get("/")
+async def root():
+    return {
+        "message": "Welcome to the Invoice Processing API.",
+        "description": "This API allows you to upload and process invoice images or PDFs to extract structured information.",
+        "usage": {
+            "upload_endpoint": "/process-invoice/",
+            "method": "POST",
+            "file_types": ["PDF", "JPEG", "PNG"],
+            "instructions": "Use this endpoint to upload an invoice as a file. The API will process the file and return the extracted data in JSON format."
+        },
+        "examples": {
+            "curl_example": "curl -X POST -F 'file=@invoice.pdf' http://<host>:8000/process-invoice/",
+            "python_example": """
+import requests
+
+url = "http://<host>:8000/process-invoice/"
+files = {'file': open('invoice.pdf', 'rb')}
+response = requests.post(url, files=files)
+print(response.json())
+            """.strip(),
+        },
+        "support": "For any issues or questions, please contact the support team or refer to the API documentation."
+    }
 
 @app.post("/process-invoice/")
 async def process_invoice(file: UploadFile):
