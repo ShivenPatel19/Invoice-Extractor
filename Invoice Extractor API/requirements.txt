@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+python-dotenv
+opencv-python-headless
+Pillow
+pdf2image
+google-generativeai
