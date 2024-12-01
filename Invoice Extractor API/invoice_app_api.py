@@ -5,8 +5,8 @@ import io
 import google.generativeai as genai
 from pdf2image import convert_from_bytes
 import json
-from fastapi import FastAPI, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, UploadFile, HTTPException, Request, Form
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import uvicorn
@@ -95,34 +95,273 @@ def input_image_setup(uploaded_file):
     else:
         raise HTTPException(status_code=400, detail="Unsupported file type. Only PDF, JPEG, JPE, JPG, and PNG are allowed.")
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Welcome to the Invoice Processing API.",
-        "description": "This API allows you to upload and process invoice images or PDFs to extract structured information.",
-        "usage": {
-            "upload_endpoint": "/process-invoice/",
-            "method": "POST",
-            "file_types": ["PDF", "JPEG", "JPG", "PNG"],
-            "instructions": "Use this endpoint to upload an invoice as a file. The API will process the file and return the extracted data in JSON format."
-        },
-        "examples": {
-            "curl_example": """
-                curl -X POST -F "file=@invoice.pdf" https://invoice-extractor-api.onrender.com/process-invoice/
-            """.strip(),
-            "python_example": """
-                import requests
-                url = "https://invoice-extractor-api.onrender.com/process-invoice/"
-                files = {'file': ('image1.jpeg', open('D:\\PaddleOCR\\Gemini+OCR\\images\\image1.jpeg', 'rb'))}
-                response = requests.post(url, files=files)
-                print(response.json())
-            """.strip(),
-        },
-        "support": "For any issues or questions, please contact the support team or refer to the API documentation."
-    }
+@app.api_route("/", methods=["GET", "POST"])
+async def process_invoice(request: Request, file: UploadFile = None):
+    """
+    A single endpoint that handles both GET and POST requests:
+    - GET: Returns API information and usage instructions.
+    - POST: Processes an uploaded invoice image or PDF and returns extracted information.
+    """
+    if request.method == "GET":
+        # HTML content for the GET request
+        html_content = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Invoice Processing API</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    margin: 20px;
+                    color: #333;
+                }
+                h1 {
+                    color: #0066cc;
+                }
+                pre {
+                    background-color: #f4f4f4;
+                    padding: 10px;
+                    border-radius: 5px;
+                    overflow-x: auto;
+                }
+                .container {
+                    max-width: 800px;
+                    margin: auto;
+                }
+                .section {
+                    margin-bottom: 20px;
+                }
+                .examples {
+                    background-color: #f9f9f9;
+                    padding: 15px;
+                    border-left: 5px solid #0066cc;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Welcome to the Invoice Processing API</h1>
+                <p>This API allows you to upload and process invoice images or PDFs to extract structured information.</p>
 
-@app.post("/process-invoice/")
-async def process_invoice(file: UploadFile):
+                <div class="section">
+                    <h2>Usage</h2>
+                    <p><b>Upload Endpoint:</b> <code>/</code></p>
+                    <p><b>Method:</b> POST</p>
+                    <p><b>Supported File Types:</b> PDF, JPEG, JPG, PNG</p>
+                    <p><b>Instructions:</b> Use this endpoint to upload an invoice as a file. The API will process the file and return the extracted data in JSON format.</p>
+                </div>
+
+                <div class="section">
+                    <h2>Examples</h2>
+
+                    <div class="examples">
+                        <h3>Using cURL</h3>
+                        <pre>curl -X POST -F "file=@invoice.pdf" https://invoice-extractor-api.onrender.com/</pre>
+
+                        <h3>Using Python</h3>
+                        <pre>
+                            import requests
+
+                            url = "https://invoice-extractor-api.onrender.com/"
+                            files = {'file': ('invoice.pdf', open('path_to_your_file.pdf', 'rb'))}
+                            response = requests.post(url, files=files)
+                            print(response.json())
+                        </pre>
+                    </div>
+
+                </div>
+
+                <div class="section">
+                    <h2>Additional Endpoints</h2>
+
+                    <div class="examples">
+                        <h3>POST /user-format/</h3>
+
+                        <h4>Using cURL</h4>
+                        <pre>curl -X POST -F "file=@invoice.pdf" -F "user_format={...}" https://invoice-extractor-api.onrender.com/user-format/</pre>
+
+                        <h4>Using Python</h4>
+                        <pre>
+                            import requests
+
+                            url = "https://invoice-extractor-api.onrender.com/user-format/"
+                            files = {'file': ('invoice.pdf', open('path_to_your_file.pdf', 'rb'))}
+                            data = {'user_format': '{"desired_key": "value"}'}  # Replace with your desired format
+                            response = requests.post(url, files=files, data=data)
+                            print(response.json())
+                        </pre>
+                        <pre>
+                        Example of user_format:
+                        '{
+                            "merchant": {
+                                "name": "Store Name",
+                                "address": "123 Store St, City, ZIP",
+                                "contact": "Phone number"
+                            },
+                            "receipt_details": {
+                                "receipt_number": "XYZ123456",
+                                "date": "YYYY-MM-DD",
+                                "time": "HH:MM:SS",
+                                "payment_method": "Credit Card / Cash / Other",
+                                "currency": "USD",
+                                "total_amount": "26.45",
+                                "taxes": "3.45",
+                                "discounts": "2.00"
+                            },
+                            "items": [
+                                {
+                                    "name": "Item 1",
+                                    "quantity": "1",
+                                    "price": "10.00",
+                                    "total": "10.00"
+                                },
+                                {
+                                    "name": "Item 2",
+                                    "quantity": "2",
+                                    "price": "7.50",
+                                    "total": "15.00"
+                                }
+                            ],
+                            "total_items": "3",
+                            "subtotal": "25.00",
+                            "tax_amount": "3.45",
+                            "discount_amount": "2.00",
+                            "final_total": "26.45"
+                        }'
+                        </pre>
+                    </div>
+
+                </div>
+
+                <div class="section">
+                    <h2>Support</h2>
+                    <p>If you encounter any issues or have questions, please contact the support team or refer to the API documentation for further assistance.</p>
+                </div>
+
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+    
+    elif request.method == "POST":
+        input_prompt = """
+                You are an expert in understanding and extracting information from invoices.
+                You will receive invoice images as input and need to provide accurate answers based on the extracted details.
+                    
+                Additional instructions for Processing Invoices(Follow Strictly):
+
+                1. Missing Fields: If any required fields or parameters are absent in the image,
+                    fill them in with the value "null" if the paramater accepts string,
+                    else if it acepts number or integer of float just make its value as 0.0 in float.
+                2. Item Consistency: Ensure consistency in the "items" section:
+                    If the individual item total is missing, calculate it as quantity multiplied by price and provide the accurate result.
+                3. Tax Calculations:
+                    If multiple tax types are listed (e.g., CGST, SGST), sum them and confirm the accuracy of the total tax amount.
+                    If tax percentages are provided, verify that they match the total tax amount.
+                    If total taxes are absent, sum all listed taxes separately to determine the correct final tax amount. For example if  CGST is 14.26 and SGST is 14.26 then total tax is 28.52.
+                    Ensure that the taxable amount (including any discounts) plus total taxes (including individual CGST and SGST) equals the final amount.
+                4. Item Identification: Be aware that product or item names may be split across multiple lines in the same column. Treat each row as a continuation and consider it as a single item.
+                5. Bill Generation Time: The time when the bill is generated or paid may appear anywhere on the bill. Identify it by recognizing common formats or searching for indicators like "am/AM" or "pm/PM".
+                6. Data Verification: Whenever possible, verify that the extracted data aligns with expected values:
+                    Check if the total amount matches the sum of item prices plus taxes, minus any applicable discounts.
+                    Confirm that the total quantity matches the sum of quantities for each item if provided.
+                    Cross-check all other values based on your expertise in understanding invoices and bills.
+                7.  Subtotal calculation: Ignore extracting subtotal directly from the image.
+                    Taxable value/amount in the bill is the actual subtotal. Subtotal can't be same as final amount, must check.
+                    As subtotal plus taxes subtract discount(if given) gives the total final amount. Subtotal value should be added basis on this checks.
+                    Calculate Subtotal: Ensure that subtotal is calculated as:
+                    subtotal = final_total - tax_amount + discount_amount
+                    Validation: Confirm that:
+                    final_total = subtotal + tax_amount - discount_amount
+                8.  Currency: Don't just use the currency sumbol in json as it is. Find out the name of that currency adn then add that name in currency.
+        """ 
+    
+        input_text = """
+                For that you must carefully scan the document and return the results in the following structured format: 
+                {
+                    "merchant": {
+                        "name": "Store Name",
+                        "address": "123 Store St, City, ZIP",
+                        "contact": "Phone number"
+                    },
+                    "receipt_details": {
+                        "receipt_number": "XYZ123456",
+                        "date": "YYYY-MM-DD",
+                        "time": "HH:MM:SS",
+                        "payment_method": "Credit Card / Cash / Other",
+                        "currency": "USD",
+                        "total_amount": "26.45",
+                        "taxes": "3.45",
+                        "discounts": "2.00"
+                    },
+                    "items": [
+                        {
+                            "name": "Item 1",
+                            "quantity": "1",
+                            "price": "10.00",
+                            "total": "10.00"
+                        },
+                        {
+                            "name": "Item 2",
+                            "quantity": "2",
+                            "price": "7.50",
+                            "total": "15.00"
+                        }
+                    ],
+                    "total_items": "3",
+                    "subtotal": "25.00",
+                    "tax_amount": "3.45",
+                    "discount_amount": "2.00",
+                    "final_total": "26.45"
+                }
+        """
+    
+        try:
+            if not file or not file.filename:
+                raise HTTPException(status_code=400, detail="No file uploaded.")
+
+            # Prepare the uploaded file
+            image_data_list = input_image_setup(file)
+
+            all_page_data = []
+
+            # Process each page's image
+            for image_data in image_data_list:
+                # Generate response using Gemini
+                gemini_response = get_gemini_response(input_text, image_data, input_prompt)
+
+                # Parse and clean the response
+                json_content = gemini_response.strip('```').replace('json\n', '', 1).strip()
+                page_data = json.loads(json_content)
+                all_page_data.append(page_data)
+
+            # Check if it's a single image or multi-page PDF
+            if len(all_page_data) == 1:  # Single image case
+                return JSONResponse(content=all_page_data[0])
+            else:  # Multi-page PDF case
+                combined_data = process_merged_invoice(all_page_data)
+                json_combined_data = combined_data.strip('```').replace('json\n', '', 1).strip()
+                json_combined_data = json.loads(json_combined_data)
+                return JSONResponse(content=json_combined_data)
+
+        except HTTPException as e:
+            logging.error(f"HTTP Exception: {e.detail}")
+            raise e
+        except json.JSONDecodeError:
+            logging.error("Failed to decode Gemini's response into JSON.")
+            raise HTTPException(status_code=500, detail="Error decoding AI response. Please check the input.")
+        except Exception as e:
+            logging.error(f"Unexpected error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error processing invoice: {str(e)}")
+
+
+@app.post("/user-format/")
+async def process_invoice(
+    file: UploadFile, user_format: str = Form(...)):
     """
     Endpoint to process an uploaded invoice image or PDF and return extracted information in JSON format.
     """
@@ -158,43 +397,9 @@ async def process_invoice(file: UploadFile):
                 8.  Currency: Don't just use the currency sumbol in json as it is. Find out the name of that currency adn then add that name in currency.
                 """ 
     
-    input_text = """
+    input_text = f"""
                 For that you must carefully scan the document and return the results in the following structured format: 
-                {
-                    "merchant": {
-                        "name": "Store Name",
-                        "address": "123 Store St, City, ZIP",
-                        "contact": "Phone number"
-                    },
-                    "receipt_details": {
-                        "receipt_number": "XYZ123456",
-                        "date": "YYYY-MM-DD",
-                        "time": "HH:MM:SS",
-                        "payment_method": "Credit Card / Cash / Other",
-                        "currency": "USD",
-                        "total_amount": "26.45",
-                        "taxes": "3.45",
-                        "discounts": "2.00"
-                    },
-                    "items": [
-                        {
-                            "name": "Item 1",
-                            "quantity": "1",
-                            "price": "10.00",
-                            "total": "10.00"
-                        },
-                        {
-                            "name": "Item 2",
-                            "quantity": "2",
-                            "price": "7.50",
-                            "total": "15.00"
-                        }
-                    ],
-                    "subtotal": "25.00",
-                    "tax_amount": "3.45",
-                    "discount_amount": "2.00",
-                    "final_total": "26.45"
-                }
+                {user_format}
                 """
     
     try:
@@ -301,6 +506,7 @@ def process_merged_invoice(all_page_texts):
                             "total": "15.00"
                         }
                     ],
+                    "total_items": "3",
                     "subtotal": 25.00,
                     "tax_amount": 3.45,
                     "discount_amount": 2.00,
