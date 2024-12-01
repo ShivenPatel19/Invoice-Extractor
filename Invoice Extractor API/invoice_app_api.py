@@ -194,7 +194,7 @@ response = requests.post(url, files=files, data=data)
 print(response.json())
                         </pre>
                         <pre>
-                        <strong>Example of user_format:</strong>
+<strong>Example of user_format:</strong>
 data = {'user_format': '''
             {
                 "merchant": {
@@ -241,7 +241,7 @@ data = {'user_format': '''
 
                 <div class="section">
                     <h2>Support</h2>
-                    <p>If you encounter any issues or have questions, please contact the support team or refer to the API documentation for further assistance.</p>
+                    <p>If you encounter any issues or have questions, please contact the support team or <a href="https://github.com/ShivenPatel19/Invoice-Extractor">refer</a> to the API documentation for further assistance.</p>
                 </div>
 
             </div>
