@@ -163,12 +163,12 @@ async def process_invoice(request: Request, file: UploadFile = None):
 
                         <h3>Using Python</h3>
                         <pre>
-                            import requests
+import requests
 
-                            url = "https://invoice-extractor-api.onrender.com/"
-                            files = {'file': ('invoice.pdf', open('path_to_your_file.pdf', 'rb'))}
-                            response = requests.post(url, files=files)
-                            print(response.json())
+url = "https://invoice-extractor-api.onrender.com/"
+files = {'file': ('invoice.jpeg', open(r'path\of\your\invoice.jpeg', 'rb'))}
+response = requests.post(url, files=files)
+print(response.json())
                         </pre>
                     </div>
 
@@ -185,52 +185,55 @@ async def process_invoice(request: Request, file: UploadFile = None):
 
                         <h4>Using Python</h4>
                         <pre>
-                            import requests
+import requests
 
-                            url = "https://invoice-extractor-api.onrender.com/user-format/"
-                            files = {'file': ('invoice.pdf', open('path_to_your_file.pdf', 'rb'))}
-                            data = {'user_format': '{"desired_key": "value"}'}  # Replace with your desired format
-                            response = requests.post(url, files=files, data=data)
-                            print(response.json())
+url = "https://invoice-extractor-api.onrender.com/user-format/"
+files = {'file': ('invoice.pdf', open(r'path\of\your\invoice.pdf', 'rb'))}
+data = {'user_format': '{"desired_key": "value"}'}  # Replace with your desired format
+response = requests.post(url, files=files, data=data)
+print(response.json())
                         </pre>
                         <pre>
-                        Example of user_format:
-                        '{
-                            "merchant": {
-                                "name": "Store Name",
-                                "address": "123 Store St, City, ZIP",
-                                "contact": "Phone number"
-                            },
-                            "receipt_details": {
-                                "receipt_number": "XYZ123456",
-                                "date": "YYYY-MM-DD",
-                                "time": "HH:MM:SS",
-                                "payment_method": "Credit Card / Cash / Other",
-                                "currency": "USD",
-                                "total_amount": "26.45",
-                                "taxes": "3.45",
-                                "discounts": "2.00"
-                            },
-                            "items": [
-                                {
-                                    "name": "Item 1",
-                                    "quantity": "1",
-                                    "price": "10.00",
-                                    "total": "10.00"
-                                },
-                                {
-                                    "name": "Item 2",
-                                    "quantity": "2",
-                                    "price": "7.50",
-                                    "total": "15.00"
-                                }
-                            ],
-                            "total_items": "3",
-                            "subtotal": "25.00",
-                            "tax_amount": "3.45",
-                            "discount_amount": "2.00",
-                            "final_total": "26.45"
-                        }'
+                        <strong>Example of user_format:</strong>
+data = {'user_format': '''
+            {
+                "merchant": {
+                    "name": "Store Name",
+                    "address": "123 Store St, City, ZIP",
+                    "contact": "Phone number"
+                },
+                "receipt_details": {
+                    "receipt_number": "XYZ123456",
+                    "date": "YYYY-MM-DD",
+                    "time": "HH:MM:SS",
+                    "payment_method": "Credit Card / Cash / Other",
+                    "currency": "USD",
+                    "total_amount": "26.45",
+                    "taxes": "3.45",
+                    "discounts": "2.00"
+                },
+                "items": [
+                    {
+                        "name": "Item 1",
+                        "quantity": "1",
+                        "price": "10.00",
+                        "total": "10.00"
+                    },
+                    {
+                        "name": "Item 2",
+                        "quantity": "2",
+                        "price": "7.50",
+                        "total": "15.00"
+                    }
+                ],
+                "total_items": "3",
+                "subtotal": "25.00",
+                "tax_amount": "3.45",
+                "discount_amount": "2.00",
+                "final_total": "26.45"
+            }
+        '''
+        }
                         </pre>
                     </div>
 
@@ -398,7 +401,7 @@ async def process_invoice(
                 """ 
     
     input_text = f"""
-                For that you must carefully scan the document and return the results in the following structured format: 
+                For that you must carefully scan the document and return the results in the following JSON structured format: 
                 {user_format}
                 """
     
