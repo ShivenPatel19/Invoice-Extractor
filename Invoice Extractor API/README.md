@@ -1,64 +1,98 @@
 
 # Invoice Extractor API
 
-Welcome to the **Invoice Extractor API**! This API allows you to process PDF and image files (JPG, JPEG and PNG) and extract relevant information from invoices.
+Welcome to the **Invoice Extractor API**! This API allows you to process PDF and image files (JPG, JPEG, and PNG) and extract relevant information from invoices.
 
 ## Table of Contents
 1. [Overview](#overview)
-2. [API Endpoint](#api-endpoint)
+2. [API Endpoints](#api-endpoints)
+   - [Upload Endpoint](#upload-endpoint)
+   - [Custom User Format Endpoint](#custom-user-format-endpoint)
+   - [Demo Endpoint](#demo-endpoint)
 3. [How to Use](#how-to-use)
    - [Using `curl`](#using-curl)
    - [Using Python](#using-python)
 4. [Supported File Types](#supported-file-types)
 5. [Error Handling](#error-handling)
-6. [Example Requests](#example-requests)
 
 ## Overview
-The Invoice Extractor API processes uploaded invoice files and extracts key data from them. It accepts PDF and image files, handling them as follows:
+The Invoice Extractor API processes uploaded invoice files and extracts key data from them. It handles:
 - **PDF files**: Converted to images for processing, with each page handled individually.
 - **Image files**: Processed directly for data extraction.
 
-## API Endpoint
-```
-POST https://invoice-extractor-api.onrender.com/process-invoice/
-```
+The API ensures robust error handling for missing fields, item inconsistencies, tax calculations, and subtotal validations.
 
-### Request Headers
-- **Content-Type**: `multipart/form-data` (automatically set by `curl` or `requests` when uploading files)
+## API Endpoints
+
+### Upload Endpoint
+```
+POST /
+```
+#### Description
+Upload an invoice file (PDF or image) to extract structured data.
+
+#### Request Headers
+- **Content-Type**: `multipart/form-data`
+
+---
+
+### Custom User Format Endpoint
+```
+POST /user-format/
+```
+#### Description
+Upload an invoice file with a custom JSON format to receive extracted data in the desired structure.
+
+#### Request Headers
+- **Content-Type**: `multipart/form-data`
+
+---
+
+### Demo Endpoint
+```
+GET /demo
+```
+#### Description
+Serves a demo page for testing the API.
 
 ## How to Use
 
 ### Using `curl`
-To upload an invoice PDF using `curl`, run the following command in your terminal:
-
+#### Upload Endpoint:
 ```bash
-curl -X POST -F "file=@invoice.pdf" https://invoice-extractor-api.onrender.com/process-invoice/
+curl -X POST -F "file=@invoice.pdf" https://invoice-extractor-api.onrender.com/
 ```
 
-Replace `invoice.pdf` with the path to your PDF or image file.
+#### Custom User Format Endpoint:
+```bash
+curl -X POST \
+    -F "file=@invoice.pdf" \
+    -F "user_format={\"merchant\":{\"name\":\"Store Name\"}}" \
+    https://invoice-extractor-api.onrender.com/user-format/
+```
 
 ### Using Python
-You can also use Python with the `requests` library to upload a file:
-
+#### Upload Endpoint:
 ```python
 import requests
 
-# URL of the API
-url = "https://invoice-extractor-api.onrender.com/process-invoice/"
-
-# Open the file in binary mode
-with open('D:\PaddleOCR\Gemini+OCR\images\image1.pdf', 'rb') as file:
-    # Prepare the file for upload with the correct MIME type
-    files = {'file': ('image1.pdf', file, 'application/pdf')}
-    
-    # Send a POST request to the API
+url = "https://invoice-extractor-api.onrender.com/"
+with open('path/to/your/file.pdf', 'rb') as file:
+    files = {'file': ('file.pdf', file)}
     response = requests.post(url, files=files)
-
-# Print the response
-print(response.json())
+    print(response.json())
 ```
 
-**Note**: Ensure you have the `requests` library installed (`pip install requests`).
+#### Custom User Format Endpoint:
+```python
+import requests
+
+url = "https://invoice-extractor-api.onrender.com/user-format/"
+files = {'file': ('file.pdf', open('path/to/your/file.pdf', 'rb'))}
+data = {'user_format': '{"merchant":{"name":"Store Name"}}'}
+response = requests.post(url, files=files, data=data)
+print(response.json())
+```
 
 ## Supported File Types
 - **PDF**: `application/pdf`
@@ -66,47 +100,32 @@ print(response.json())
 - **JPG**: `image/jpg`
 - **PNG**: `image/png`
 
-
-**Note**: The API only processes PDF, JPEG, and PNG files. Other file types will result in an error.
+Other file types will result in an error.
 
 ## Error Handling
-- **Unsupported File Type**: If a file type other than PDF, JPG, JPEG, or PNG is uploaded, the server will respond with:
+- **Unsupported File Type**:
   ```json
   {
     "detail": "Unsupported file type. Only PDF, JPEG, and PNG are allowed."
   }
   ```
-
-- **Empty or Invalid PDF**: If a PDF file is empty or cannot be processed, the response will be:
+- **Empty or Invalid PDF**:
   ```json
   {
     "detail": "The uploaded PDF is empty or invalid."
   }
   ```
-
-## Example Requests
-
-### Using `curl`
-```bash
-# Uploading a PDF file
-curl -X POST -F "file=@path/to/your/file.pdf" https://invoice-extractor-api.onrender.com/process-invoice/
-
-# Uploading a JPEG image
-curl -X POST -F "file=@path/to/your/file.jpeg" https://invoice-extractor-api.onrender.com/process-invoice/
-```
-
-### Using Python
-```python
-# Python code snippet for PDF
-files = {'file': ('file.pdf', open('path/to/your/file.pdf', 'rb'), 'application/pdf')}
-response = requests.post(url, files=files)
-print(response.json())
-
-# Python code snippet for JPEG
-files = {'file': ('file.jpeg', open('path/to/your/file.jpeg', 'rb'), 'image/jpeg')}
-response = requests.post(url, files=files)
-print(response.json())
-```
+- **Internal Server Errors**:
+  ```json
+  {
+    "detail": "Error processing invoice: <details>"
+  }
+  ```
+  
+## Note
+**For missing fields in the invoice:**
+- String fields will be assigned the value null.
+- Numeric fields will be assigned the value 0.0.
 
 ## Conclusion
-The Invoice Extractor API is a simple and effective way to automate the extraction of data from invoice files. Whether you are using `curl` or Python, the API is easy to integrate into your workflows.
+The Invoice Extractor API is a simple and effective tool to automate the extraction of data from invoices. Whether using `curl` or Python, the API is designed for ease of integration into your workflows. For advanced use cases, leverage the custom user format endpoint.
