@@ -53,6 +53,13 @@
             background-color: #f1f1f1;
             overflow-x: auto;
         }
+        .processing {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.2rem;
+            color: #0066cc;
+        }
     </style>
 </head>
 <body>
@@ -63,8 +70,9 @@
             <input type="file" id="file" name="file" required>
             <label for="user_format">Custom JSON Format (Optional):</label>
             <textarea id="user_format" name="user_format" placeholder='{"merchant": {"name": "Store Name"}}'></textarea>
-            <button type="button" onclick="submitRequest()">Submit</button>
+            <button type="button" id="submit-button" onclick="submitRequest()">Submit</button>
         </form>
+        <div id="processing" class="processing">Analyzing...</div>
         <div id="response" class="response" style="display: none;">
             <h3>API Response:</h3>
             <pre id="response-content"></pre>
@@ -76,8 +84,20 @@
             const form = document.getElementById("upload-form");
             const fileInput = document.getElementById("file");
             const userFormatInput = document.getElementById("user_format");
+            const submitButton = document.getElementById("submit-button");
+            const processingDiv = document.getElementById("processing");
             const responseDiv = document.getElementById("response");
             const responseContent = document.getElementById("response-content");
+
+            // Disable the form elements and show the processing message
+            submitButton.disabled = true;
+            fileInput.disabled = true;
+            userFormatInput.disabled = true;
+            processingDiv.style.display = "block";
+
+            // Clear previous response content
+            responseDiv.style.display = "none";
+            responseContent.textContent = "";
 
             const formData = new FormData();
             formData.append("file", fileInput.files[0]);
@@ -92,12 +112,23 @@
                     body: formData
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
+                processingDiv.style.display = "none";
                 responseDiv.style.display = "block";
                 responseContent.textContent = JSON.stringify(data, null, 2);
             } catch (error) {
+                processingDiv.style.display = "none";
                 responseDiv.style.display = "block";
                 responseContent.textContent = `Error: ${error.message}`;
+            } finally {
+                // Enable the form elements after processing is complete
+                submitButton.disabled = false;
+                fileInput.disabled = false;
+                userFormatInput.disabled = false;
             }
         }
     </script>
