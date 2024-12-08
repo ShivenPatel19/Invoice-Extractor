@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+
         .container {
             max-width: 600px;
             margin: auto;
@@ -17,25 +19,31 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
+
         h1 {
             color: #0066cc;
             text-align: center;
         }
-        input[type="file"], textarea, button {
+
+        input[type="file"],
+        textarea,
+        button {
             display: block;
             width: 100%;
             margin-bottom: 15px;
             padding: 10px;
             font-size: 1rem;
         }
+
         textarea {
             resize: vertical;
             height: 100px;
         }
+
         button {
             background-color: #f9f9f9;
             padding: 15px;
-            border-left: 5px solid #0066cc;
+            /* border-left: 5px solid #0066cc; */
             color: #0066cc;
             font-weight: bold;
             cursor: pointer;
@@ -45,6 +53,7 @@
         button:hover {
             background-color: rgb(173, 172, 172);
         }
+
         .response {
             margin-top: 20px;
             padding: 15px;
@@ -53,6 +62,7 @@
             background-color: #f1f1f1;
             overflow-x: auto;
         }
+
         .processing {
             display: none;
             text-align: center;
@@ -60,14 +70,32 @@
             font-size: 1.2rem;
             color: #0066cc;
         }
+
+        .preview {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview img {
+            width: 100%;
+            /* max-height: 300px; */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Invoice Processing API Demo</h1>
         <form id="upload-form" enctype="multipart/form-data">
             <label for="file">Upload Invoice File (PDF/JPEG/PNG):</label>
-            <input type="file" id="file" name="file" required>
+            <input type="file" id="file" name="file" required onchange="previewImage()">
+            <div id="image-preview" class="preview">
+                <h3>Image Preview:</h3>
+                <img id="preview-image" src="" alt="Preview Image">
+            </div>
             <label for="user_format">Custom JSON Format (Optional):</label>
             <textarea id="user_format" name="user_format" placeholder='{"merchant": {"name": "Store Name"}}'></textarea>
             <button type="button" id="submit-button" onclick="submitRequest()">Submit</button>
@@ -80,6 +108,23 @@
     </div>
 
     <script>
+        function previewImage() {
+            const fileInput = document.getElementById("file");
+            const previewDiv = document.getElementById("image-preview");
+            const previewImage = document.getElementById("preview-image");
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewDiv.style.display = "block";
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                previewDiv.style.display = "none";
+            }
+        }
+
         async function submitRequest() {
             const form = document.getElementById("upload-form");
             const fileInput = document.getElementById("file");
@@ -133,4 +178,5 @@
         }
     </script>
 </body>
+
 </html>
