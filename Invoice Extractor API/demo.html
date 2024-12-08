@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Processing API Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+        }
+        input[type="file"], textarea, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 1rem;
+        }
+        textarea {
+            resize: vertical;
+            height: 100px;
+        }
+        button {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 5px solid #0066cc;
+            color: #0066cc;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        button:hover {
+            background-color: rgb(173, 172, 172);
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f1f1f1;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Invoice Processing API Demo</h1>
+        <form id="upload-form" enctype="multipart/form-data">
+            <label for="file">Upload Invoice File (PDF/JPEG/PNG):</label>
+            <input type="file" id="file" name="file" required>
+            <label for="user_format">Custom JSON Format (Optional):</label>
+            <textarea id="user_format" name="user_format" placeholder='{"merchant": {"name": "Store Name"}}'></textarea>
+            <button type="button" onclick="submitRequest()">Submit</button>
+        </form>
+        <div id="response" class="response" style="display: none;">
+            <h3>API Response:</h3>
+            <pre id="response-content"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function submitRequest() {
+            const form = document.getElementById("upload-form");
+            const fileInput = document.getElementById("file");
+            const userFormatInput = document.getElementById("user_format");
+            const responseDiv = document.getElementById("response");
+            const responseContent = document.getElementById("response-content");
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            if (userFormatInput.value) {
+                formData.append("user_format", userFormatInput.value);
+            }
+
+            try {
+                const endpoint = userFormatInput.value ? "/user-format/" : "/";
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+                responseDiv.style.display = "block";
+                responseContent.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseDiv.style.display = "block";
+                responseContent.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

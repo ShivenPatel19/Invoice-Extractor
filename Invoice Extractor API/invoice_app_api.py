@@ -99,156 +99,20 @@ def input_image_setup(uploaded_file):
 async def process_invoice(request: Request, file: UploadFile = None):
     """
     A single endpoint that handles both GET and POST requests:
-    - GET: Returns API information and usage instructions.
+    - GET: Returns API information and usage instructions from an HTML file.
     - POST: Processes an uploaded invoice image or PDF and returns extracted information.
     """
     if request.method == "GET":
-        # HTML content for the GET request
-        html_content = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Invoice Processing API</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    line-height: 1.6;
-                    margin: 20px;
-                    color: #333;
-                }
-                h1 {
-                    color: #0066cc;
-                }
-                pre {
-                    background-color: #f4f4f4;
-                    padding: 10px;
-                    border-radius: 5px;
-                    overflow-x: auto;
-                }
-                .container {
-                    max-width: 800px;
-                    margin: auto;
-                }
-                .section {
-                    margin-bottom: 20px;
-                }
-                .examples {
-                    background-color: #f9f9f9;
-                    padding: 15px;
-                    border-left: 5px solid #0066cc;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Welcome to the Invoice Processing API</h1>
-                <p>This API allows you to upload and process invoice images or PDFs to extract structured information.</p>
-
-                <div class="section">
-                    <h2>Usage</h2>
-                    <p><b>Upload Endpoint:</b> <code>/</code></p>
-                    <p><b>Method:</b> POST</p>
-                    <p><b>Supported File Types:</b> PDF, JPEG, JPG, PNG</p>
-                    <p><b>Instructions:</b> Use this endpoint to upload an invoice as a file. The API will process the file and return the extracted data in JSON format.</p>
-                </div>
-
-                <div class="section">
-                    <h2>Examples</h2>
-
-                    <div class="examples">
-                        <h3>Using cURL</h3>
-                        <pre>curl -X POST -F "file=@invoice.pdf" https://invoice-extractor-api.onrender.com/</pre>
-
-                        <h3>Using Python</h3>
-                        <pre>
-import requests
-
-url = "https://invoice-extractor-api.onrender.com/"
-files = {'file': ('invoice.jpeg', open(r'path\of\your\invoice.jpeg', 'rb'))}
-response = requests.post(url, files=files)
-print(response.json())
-                        </pre>
-                    </div>
-
-                </div>
-
-                <div class="section">
-                    <h2>Additional Endpoints</h2>
-
-                    <div class="examples">
-                        <h3>POST /user-format/</h3>
-
-                        <h4>Using cURL</h4>
-                        <pre>curl -X POST -F "file=@invoice.pdf" -F "user_format={...}" https://invoice-extractor-api.onrender.com/user-format/</pre>
-
-                        <h4>Using Python</h4>
-                        <pre>
-import requests
-
-url = "https://invoice-extractor-api.onrender.com/user-format/"
-files = {'file': ('invoice.pdf', open(r'path\of\your\invoice.pdf', 'rb'))}
-data = {'user_format': '{"desired_key": "value"}'}  # Replace with your desired format
-response = requests.post(url, files=files, data=data)
-print(response.json())
-                        </pre>
-                        <pre>
-<strong>Example of user_format:</strong>
-data = {'user_format': '''
-            {
-                "merchant": {
-                    "name": "Store Name",
-                    "address": "123 Store St, City, ZIP",
-                    "contact": "Phone number"
-                },
-                "receipt_details": {
-                    "receipt_number": "XYZ123456",
-                    "date": "YYYY-MM-DD",
-                    "time": "HH:MM:SS",
-                    "payment_method": "Credit Card / Cash / Other",
-                    "currency": "USD",
-                    "total_amount": "26.45",
-                    "taxes": "3.45",
-                    "discounts": "2.00"
-                },
-                "items": [
-                    {
-                        "name": "Item 1",
-                        "quantity": "1",
-                        "price": "10.00",
-                        "total": "10.00"
-                    },
-                    {
-                        "name": "Item 2",
-                        "quantity": "2",
-                        "price": "7.50",
-                        "total": "15.00"
-                    }
-                ],
-                "total_items": "3",
-                "subtotal": "25.00",
-                "tax_amount": "3.45",
-                "discount_amount": "2.00",
-                "final_total": "26.45"
-            }
-        '''
-        }
-                        </pre>
-                    </div>
-
-                </div>
-
-                <div class="section">
-                    <h2>Support</h2>
-                    <p>If you encounter any issues or have questions, please contact the support team or <a href="https://github.com/ShivenPatel19/Invoice-Extractor">refer</a> to the API documentation for further assistance.</p>
-                </div>
-
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=html_content)
+        try:
+            # Serve the index.html file for GET requests
+            index_path = "index.html"  # Adjust the path as necessary if the file is in a subdirectory
+            with open(index_path, "r", encoding="utf-8") as file:
+                html_content = file.read()
+            return HTMLResponse(content=html_content)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="index.html file not found.")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error loading index.html: {str(e)}")
     
     elif request.method == "POST":
         input_prompt = """
@@ -556,6 +420,21 @@ def process_merged_invoice(all_page_texts):
         logging.error(f"Error processing invoice: {e}")
         raise ValueError("Failed to process the invoice with Gemini model.")
 
+@app.get("/demo")
+async def serve_demo_page():
+    """
+    Serve the demo.html page for API testing.
+    """
+    try:
+        demo_path = "demo.html"  # Path to the demo HTML file
+        with open(demo_path, "r", encoding="utf-8") as file:
+            html_content = file.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="demo.html file not found.")
+    except Exception as e:
+        logging.error(f"Error loading demo.html: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error serving demo.html: {str(e)}")
 
 # Run the application
 if __name__ == "__main__":
