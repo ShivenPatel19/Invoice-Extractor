@@ -38,6 +38,7 @@
         textarea {
             resize: vertical;
             height: 100px;
+            box-sizing: border-box;
         }
 
         button {
@@ -48,6 +49,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s, color 0.3s;
+            margin: 0;
         }
 
         button:hover {
@@ -100,7 +102,7 @@
             <textarea id="user_format" name="user_format" placeholder='{"merchant": {"name": "Store Name"}}'></textarea>
             <button type="button" id="submit-button" onclick="submitRequest()">Submit</button>
         </form>
-        <div id="processing" class="processing">Analyzing...</div>
+        <div id="processing" class="processing">Analyzing... This may take a moment.</div>
         <div id="response" class="response" style="display: none;">
             <h3>API Response:</h3>
             <pre id="response-content"></pre>
