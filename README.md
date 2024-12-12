@@ -13,7 +13,8 @@ A Streamlit-based application that extracts structured information from invoice 
 
 ## Demo
 
-For a quick overview of how the application works, check out the [video demo](https://drive.google.com/file/d/18ZAj3EQ1Q5HzYqgdH-pKf3qRudWSS0a3/view?usp=drive_link).
+For a quick overview of how the **application works**, check out the [video demo](https://drive.google.com/file/d/18ZAj3EQ1Q5HzYqgdH-pKf3qRudWSS0a3/view?usp=drive_link).
+For a quick overview of how the **API works**, check out the [video demo](https://drive.google.com/file/d/1LdBAoG44ab5M5h7TZyJwxTEHXOJjGlBy/view?usp=drive_link).
 
 ## Installation
 

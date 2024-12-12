@@ -3,6 +3,8 @@
 
 Welcome to the **Invoice Extractor API**! This API allows you to process PDF and image files (JPG, JPEG, and PNG) and extract relevant information from invoices.
 
+For a quick overview of how the **API works**, check out the [video demo](https://drive.google.com/file/d/1LdBAoG44ab5M5h7TZyJwxTEHXOJjGlBy/view?usp=drive_link).
+
 ## Table of Contents
 1. [Overview](#overview)
 2. [API Endpoints](#api-endpoints)
