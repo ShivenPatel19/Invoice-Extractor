@@ -35,6 +35,26 @@
             font-size: 1rem;
         }
 
+        .custom-file-input::-webkit-file-upload-button {
+            /* visibility: hidden; */
+            display: none;
+        }
+
+        .custom-file-input::before {
+            content: 'Select file';
+            display: inline-block;
+            border: 1px solid #999;
+            padding: 5px;
+            margin-right: 5px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .custom-file-input:hover::before {
+            border-color: black;
+            background-color: #999;
+        }
+
         textarea {
             resize: vertical;
             height: 100px;
@@ -93,7 +113,7 @@
         <h1>Invoice Processing API Demo</h1>
         <form id="upload-form" enctype="multipart/form-data">
             <label for="file">Upload Invoice File (PDF/JPEG/JPG/PNG):</label>
-            <input type="file" id="file" name="file" required onchange="previewImage()">
+            <input class="custom-file-input" type="file" id="file" name="file" required onchange="previewImage()">
             <div id="image-preview" class="preview">
                 <h3>Image Preview:</h3>
                 <img id="preview-image" src="" alt="Preview Image">
